@@ -2,7 +2,7 @@
 
 ## Purpose
 
-**SqlMcpServer** is an MCP server that lets an AI assistant explore a SQL Server database through **read-only** tools — fixed catalog queries plus validated SELECT execution. The host (Cursor, Claude Desktop, etc.) spawns this process and exchanges JSON-RPC messages over **stdin/stdout**, one message per line.
+**mssql-mcp-server** is an MCP server that lets an AI assistant explore a MSSQL Server database through **read-only** tools — fixed catalog queries plus validated SELECT execution. The host (Cursor, Claude Desktop, etc.) spawns this process and exchanges JSON-RPC messages over **stdin/stdout**, one message per line.
 
 There is no HTTP endpoint. Notifications do not receive a response line.
 
@@ -17,7 +17,7 @@ There is no HTTP endpoint. Notifications do not receive a response line.
 | SQL validation | [Microsoft.SqlServer.TransactSql.ScriptDom](https://www.nuget.org/packages/Microsoft.SqlServer.TransactSql.ScriptDom) 180.x |
 | Protocol | MCP over stdio, JSON-RPC 2.0 |
 | Test framework | MSTest 4.x, Moq |
-| Solution | `SqlMcpServer.Server` (executable) + `SqlMcpServer.Test` |
+| Solution | `McpServer.Server` (executable) + `McpServer.Test` |
 
 ## High-level architecture
 
@@ -35,7 +35,7 @@ There is no HTTP endpoint. Notifications do not receive a response line.
                                          │  IDatabaseService                │
                                          │         │                        │
                                          │         ▼                        │
-                                         │  DatabaseService ──► ISqlExecutor ──► SQL Server
+                                         │  DatabaseService ──► ISqlExecutor ──► MSSQL Server
                                          └──────────────────────────────────┘
                                                     │
                                                     ▼
@@ -80,7 +80,7 @@ Replies use standard JSON-RPC 2.0: success sets `result`, protocol failures set 
 
 | Method | Behavior |
 |--------|----------|
-| `initialize` | `result` has `protocolVersion` (`2025-11-25`), `capabilities.tools`, `serverInfo` (`SqlMcpServer` / assembly version) |
+| `initialize` | `result` has `protocolVersion` (`2025-11-25`), `capabilities.tools`, `serverInfo` (`McpServer` / assembly version) |
 | `ping` | Empty `result` object |
 | `tools/list` | `result.tools` array (name, description, `inputSchema`) |
 | `tools/call` | Run tool from `params.name`; MCP `content` / `isError` inside `result` |
@@ -156,8 +156,8 @@ Limits come from `QueryOptions` in appsettings. Long string cells are truncated 
 ## Configuration and security
 
 - **Credentials** in `Database.ConnectionString` — use masked `YOUR_*` values in committed `appsettings.json`; put real secrets only in `appsettings.local.json` (see [.gitignore](../.gitignore)).
-- **Integration test secrets** stay in `SqlMcpServer.Test/.runsettings` (gitignored); use [`.runsettings.example`](../SqlMcpServer.Test/.runsettings.example) as the template.
-- **Integration test database** is created by [integration-test-db.sql](../SqlMcpServer.Test/Script/integration-test-db.sql) (`mcp_test`).
+- **Integration test secrets** stay in `McpServer.Test/.runsettings` (gitignored); use [`.runsettings.example`](../McpServer.Test/.runsettings.example) as the template.
+- **Integration test database** is created by [integration-test-db.sql](../McpServer.Test/Script/integration-test-db.sql) (`mcp_test`).
 - **Local publish profiles** under `Properties/PublishProfiles/` are gitignored (machine-specific paths).
 - **Logging** via Serilog `WriteTo.File` path in appsettings (replace `YOUR_LOG_PATH/sql-mcp.log` in your local file). Single-file releases require `Serilog:Using` (`Serilog.Sinks.File`) and an explicit sink assembly in `Program.cs` (`ConfigurationReaderOptions`).
 - **Query limits:** `QueryOptions.MaxRows`, `MaxCellLength`, `CommandTimeoutSeconds`.
@@ -174,30 +174,30 @@ Limits come from `QueryOptions` in appsettings. Long string cells are truncated 
 
 ### Integration test setup
 
-1. Run [integration-test-db.sql](../SqlMcpServer.Test/Script/integration-test-db.sql) against a local SQL Server instance (creates database `mcp_test` and required objects).
-2. Copy [`.runsettings.example`](../SqlMcpServer.Test/.runsettings.example) → `SqlMcpServer.Test/.runsettings` and set `DbConnectionString` to that database.
+1. Run [integration-test-db.sql](../McpServer.Test/Script/integration-test-db.sql) against a local SQL Server instance (creates database `mcp_test` and required objects).
+2. Copy [`.runsettings.example`](../McpServer.Test/.runsettings.example) → `McpServer.Test/.runsettings` and set `DbConnectionString` to that database.
 3. Run tests with `--settings` (see below).
 
 ```powershell
 # Unit tests only (same filter used in CI)
-dotnet test --solution SqlMcpServer.sln --filter "TestCategory!=Integration"
+dotnet test --solution McpServer.sln --filter "TestCategory!=Integration"
 
 # All tests including integration (needs mcp_test + local .runsettings)
-dotnet test --solution SqlMcpServer.sln --settings SqlMcpServer.Test/.runsettings
+dotnet test --solution McpServer.sln --settings McpServer.Test/.runsettings
 ```
 
 CI workflows (`build.yml`, `release.yml`) always exclude `TestCategory=Integration`.
 
 ## Distribution (GitHub Releases)
 
-End users download a pre-built Windows x64 zip from [GitHub Releases](https://github.com/mvp-repos/sql-mcp-server/releases); they do not need the .NET SDK.
+End users download a pre-built Windows x64 zip from [GitHub Releases](https://github.com/darwijesinghe/mssql-mcp-server/releases); they do not need the .NET SDK.
 
 | Item | Detail |
 |------|--------|
 | Trigger | Push a tag matching `v*` (for example `v1.0.0`) |
 | Workflow | `.github/workflows/release.yml` |
 | CI steps | Unit tests (excludes `Integration`) → publish self-contained single-file exe → zip → attach to release |
-| Asset | `SqlMcpServer-win-x64.zip` containing `SqlMcpServer.Server.exe` and `appsettings.json` |
+| Asset | `McpServer-win-x64.zip` containing `McpServer.Server.exe` and `appsettings.json` |
 | User config | Copy shipped `appsettings.json` → `appsettings.local.json` beside the exe and replace `YOUR_*` placeholders; see [mcp.json.release.example](../mcp.json.release.example) |
 
 Maintainers create a release:
