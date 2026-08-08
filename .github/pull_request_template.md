@@ -1,4 +1,4 @@
-﻿﻿---
+﻿---
 name: Pull Request
 about: Submit code changes for review
 title: "[PR] <short description>"
