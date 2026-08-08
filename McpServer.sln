@@ -24,6 +24,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{40FF2936-0
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{B51EF128-3E1A-48C0-94D5-78928C993E6C}"
+	ProjectSection(SolutionItems) = preProject
+		pull_request_template.md = pull_request_template.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{F0F21CD4-A72D-4A69-8749-2E5E74FFEFFD}"
 	ProjectSection(SolutionItems) = preProject
