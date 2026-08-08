@@ -1,4 +1,4 @@
-# Contributing to McpServer
+# Contributing to mssql-mcp-server
 
 Thank you for your interest in contributing. This guide covers how to set up a development environment, follow project conventions, and submit changes.
 
@@ -20,7 +20,7 @@ Thank you for your interest in contributing. This guide covers how to set up a d
 ### Clone and build
 
 ```powershell
-git clone https://github.com/mvp-repos/sql-mcp-server.git
+git clone https://github.com/darwijesinghe/mssql-mcp-server.git
 cd sql-mcp-server
 dotnet build McpServer.sln
 ```

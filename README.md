@@ -1,4 +1,4 @@
-# McpServer
+# mssql-mcp-server
 
 A .NET 8 [MCP](https://modelcontextprotocol.io/) server that exposes **read-only** MSSQL Server tools to AI hosts (Cursor, Claude Desktop, etc.) over **stdio**.
 

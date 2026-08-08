@@ -18,6 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{40FF2936-0756-4849-9D5A-62B85D994DB7}"
 	ProjectSection(SolutionItems) = preProject
+		docs\index.md = docs\index.md
 		docs\PROJECT_OVERVIEW.md = docs\PROJECT_OVERVIEW.md
 		docs\SOURCE_TREE.md = docs\SOURCE_TREE.md
 	EndProjectSection
