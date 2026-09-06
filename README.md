@@ -2,6 +2,30 @@
 
 A .NET 9 [MCP](https://modelcontextprotocol.io/) server that exposes **read-only** MSSQL Server tools to AI hosts (Cursor, Claude Desktop, etc.) over **stdio**.
 
+## Architecture & security
+
+```
+  MCP host (Cursor, …)                 mssql-mcp-server                    MSSQL Server
+  ┌──────────────────┐                 ┌──────────────────────────┐        ┌──────────┐
+  │  agent / tools   │◄──stdio────────►│  JSON-RPC handler        │        │  login   │
+  │  (trusted spawn) │   JSON-RPC      │           │              │  TDS   │ (least   │
+  └──────────────────┘                 │           ▼              │───────►│ privilege│
+                                       │  catalog tools           │        │  SELECT) │
+                                       │  (fixed SQL + SqlParam)  │        └──────────┘
+                                       │           │              │
+                                       │  execute_read_query      │
+                                       │       │                  │
+                                       │       ▼                  │
+                                       │  QueryValidator          │  SELECT-only, fail-closed
+                                       │       │                  │
+                                       │       ▼                  │
+                                       │  SqlExecutor             │  QueryOptions:
+                                       │  (shared)                │  MaxRows / MaxCell / timeout
+                                       └──────────────────────────┘
+```
+
+No HTTP listener — transport is **stdio only**. Only `execute_read_query` goes through `QueryValidator`; catalog tools use fixed SQL (arguments bound with `SqlParameter` where needed). Row/cell/timeout caps apply in `SqlExecutor`. Details: [Project overview](docs/PROJECT_OVERVIEW.md), [Security posture](docs/SECURITY_POSTURE.md).
+
 ## Documentation
 
 | Document | Description |
