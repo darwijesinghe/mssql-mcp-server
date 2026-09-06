@@ -13,7 +13,7 @@ Thank you for your interest in contributing. This guide covers how to set up a d
 
 ### Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later (CI uses .NET 10 SDK for Microsoft.Testing.Platform via `global.json`).
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0) or later (CI uses .NET 10 SDK for Microsoft.Testing.Platform via `global.json`).
 - SQL Server reachable from your machine (optional for unit tests; required for integration tests and manual checks).
 - An MCP host such as Cursor (optional, for end-to-end testing).
 
@@ -173,7 +173,7 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-The workflow runs unit tests (excludes `Integration`), publishes a self-contained Windows x64 executable, and attaches **McpServer-win-x64.zip** to the GitHub Release. End users must add their own `appsettings.local.json` beside the exe.
+The workflow runs unit tests (excludes `Integration`), publishes self-contained single-file binaries for **win-x64**, **linux-x64**, **osx-arm64**, and **osx-x64**, and attaches those archives to the GitHub Release. End users must add their own `appsettings.local.json` beside the binary.
 
 ## Questions
 

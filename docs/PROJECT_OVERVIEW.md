@@ -10,7 +10,7 @@ There is no HTTP endpoint. Notifications do not receive a response line.
 
 | Component | Choice |
 |-----------|--------|
-| Runtime | .NET 8 |
+| Runtime | .NET 9 |
 | Host / DI | [Microsoft.Extensions.Hosting](https://www.nuget.org/packages/Microsoft.Extensions.Hosting) 10.x |
 | Logging | [Serilog](https://serilog.net/) (file sink via configuration) |
 | Database driver | [Microsoft.Data.SqlClient](https://www.nuget.org/packages/Microsoft.Data.SqlClient) 7.x |
@@ -149,7 +149,7 @@ Limits come from `QueryOptions` in appsettings. Long string cells are truncated 
 ### Notes
 
 - **Qualified names:** Many tools accept `schema.object` or a bare name (bare names may match multiple schemas).
-- **Read-only:** Catalog SQL is fixed in `DatabaseService`. Ad-hoc SQL is allowed only through `execute_read_query`, which must pass `QueryValidator` (SELECT-only, ScriptDom parse).
+- **Read-only:** Catalog SQL is fixed in `DatabaseService`. Ad-hoc SQL is allowed only through `execute_read_query`, which must pass `QueryValidator` (SELECT-only ScriptDom parse with a fail-closed table-source allow-list).
 - **Encrypted modules:** Definitions may be unavailable without `VIEW DEFINITION` permission.
 - **Parameterized search:** `search_definitions` uses parameterized `LIKE`.
 
@@ -190,15 +190,16 @@ CI workflows (`build.yml`, `release.yml`) always exclude `TestCategory=Integrati
 
 ## Distribution (GitHub Releases)
 
-End users download a pre-built Windows x64 zip from [GitHub Releases](https://github.com/darwijesinghe/mssql-mcp-server/releases); they do not need the .NET SDK.
+End users download a pre-built archive for their OS from [GitHub Releases](https://github.com/darwijesinghe/mssql-mcp-server/releases); they do not need the .NET SDK.
 
 | Item | Detail |
 |------|--------|
 | Trigger | Push a tag matching `v*` (for example `v1.0.0`) |
 | Workflow | `.github/workflows/release.yml` |
-| CI steps | Unit tests (excludes `Integration`) → publish self-contained single-file exe → zip → attach to release |
-| Asset | `McpServer-win-x64.zip` containing `McpServer.Server.exe` and `appsettings.json` |
-| User config | Copy shipped `appsettings.json` → `appsettings.local.json` beside the exe and replace `YOUR_*` placeholders; see [mcp.json.release.example](../mcp.json.release.example) |
+| CI steps | Unit tests (excludes `Integration`) → matrix publish (self-contained single-file) → archive → collect artifacts → single GitHub Release upload |
+| Assets | `McpServer-win-x64.zip`, `McpServer-linux-x64.tar.gz`, `McpServer-osx-arm64.tar.gz`, `McpServer-osx-x64.tar.gz` (each contains the binary + `appsettings.json`) |
+| Binary | `McpServer.Server.exe` (Windows) or `McpServer.Server` (Linux / macOS) |
+| User config | Copy shipped `appsettings.json` → `appsettings.local.json` beside the binary and replace `YOUR_*` placeholders; see [mcp.json.release.example](../mcp.json.release.example) (Windows) or [mcp.json.release.unix.example](../mcp.json.release.unix.example) (Linux / macOS) |
 
 Maintainers create a release:
 
@@ -225,4 +226,5 @@ Release binaries are not committed to git (`publish/` and `artifacts/` stay loca
 
 - [Documentation index](index.md)
 - [Source tree](SOURCE_TREE.md)
+- [Security posture](SECURITY_POSTURE.md)
 - [README](../README.md)
