@@ -14,7 +14,8 @@ mssql-mcp-server/                          # Repository root
 ├── SECURITY.md                            # Vulnerability reporting
 ├── RELEASE_NOTES.md                       # Version history
 ├── mcp.json.example                       # MCP config when running from source (dotnet run)
-├── mcp.json.release.example               # MCP config when using downloaded exe from Releases
+├── mcp.json.release.example               # MCP config for Windows release binary
+├── mcp.json.release.unix.example          # MCP config for Linux / macOS release binary
 ├── McpServer.sln
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
@@ -22,13 +23,14 @@ mssql-mcp-server/                          # Repository root
 │   │   └── feature_request.md
 │   └── workflows/
 │       ├── build.yml                      # PR build + unit tests (main, dev; skips Integration)
-│       └── release.yml                    # Unit tests + win-x64 zip on v* tag push
+│       └── release.yml                    # Unit tests + multi-RID archives on v* tag push
 ├── docs/
 │   ├── index.md                           # Documentation master index
 │   ├── PROJECT_OVERVIEW.md
+│   ├── SECURITY_POSTURE.md                # Protections, gaps, permissions, production guidance
 │   └── SOURCE_TREE.md                     # This file
 │
-├── McpServer.Server/                      # MCP server (net8.0 console)
+├── McpServer.Server/                      # MCP server (net9.0 console)
 │   ├── McpServer.Server.csproj
 │   ├── Program.cs                         # class Program — Generic Host, DI, Serilog, configuration
 │   ├── Startup.cs                         # DB validation, stdio JSON-RPC loop
@@ -55,7 +57,7 @@ mssql-mcp-server/                          # Repository root
 │   │
 │   ├── Utils/
 │   │   ├── JsonHelper.cs                  # JsonElement id → CLR type for responses
-│   │   └── QueryValidator.cs              # SELECT-only validation via ScriptDom
+│   │   └── QueryValidator.cs              # SELECT-only + fail-closed table-source allow-list (ScriptDom)
 │   │
 │   └── Properties/                        # May hold local PublishProfiles (gitignored)
 │
@@ -66,6 +68,7 @@ mssql-mcp-server/                          # Repository root
     ├── McpMessageHandlerTests.cs          # Handler protocol and tool-call coverage
     ├── DatabaseServiceTests.cs            # DatabaseService unit tests (mocked executor)
     ├── DatabaseServiceIntegrationTests.cs # Live SQL Server integration tests
+    ├── QueryValidatorTests.cs             # SELECT-only + table-source allow-list coverage
     ├── Script/
     │   └── integration-test-db.sql        # Creates mcp_test DB + objects for integration tests
     └── Helpers/
@@ -89,12 +92,14 @@ mssql-mcp-server/                          # Repository root
 | `SECURITY.md` | Private vulnerability reporting and disclosure policy |
 | `RELEASE_NOTES.md` | Version history and release summaries |
 | `mcp.json.example` | MCP template for `dotnet run` (developers) |
-| `mcp.json.release.example` | MCP template for published `McpServer.Server.exe` (end users) |
+| `mcp.json.release.example` | MCP template for Windows release binary (end users) |
+| `mcp.json.release.unix.example` | MCP template for Linux / macOS release binary (end users) |
 | `.github/workflows/build.yml` | CI: restore, build, and unit tests on PRs to `main`/`dev` (excludes `Integration`) |
-| `.github/workflows/release.yml` | CI: unit tests (excludes `Integration`), publish, zip, GitHub Release on `v*` tags |
+| `.github/workflows/release.yml` | CI: unit tests (excludes `Integration`), multi-RID publish, GitHub Release on `v*` tags |
 | `.github/ISSUE_TEMPLATE/` | GitHub issue templates for bugs and feature requests |
 | `McpServer.sln` | Solution file (Server + Test projects) |
 | `docs/index.md` | Master documentation index |
+| `docs/SECURITY_POSTURE.md` | Security protections, gaps, SQL permissions, and production guidance |
 
 ### `McpServer.Server/Program.cs`
 
@@ -139,11 +144,11 @@ Validates database connectivity (15s timeout), reads stdin lines, deserializes J
 | File | Role |
 |------|------|
 | `JsonHelper.cs` | `ConvertId` extension for JSON-RPC response ids |
-| `QueryValidator.cs` | Parses and validates SELECT-only SQL for `execute_read_query` |
+| `QueryValidator.cs` | Parses SELECT-only SQL for `execute_read_query`; allow-lists named tables/views, derived tables, and joins; rejects TVFs, OPEN*, table variables, and unrecognized table sources |
 
 ### `McpServer.Server.csproj`
 
-- Target: `net8.0` executable
+- Target: `net9.0` executable
 - Packages: `Microsoft.Data.SqlClient`, `Microsoft.Extensions.Hosting`, Serilog, ScriptDom
 - `GenerateDocumentationFile` enabled
 - Copies `appsettings.json` to output directory
@@ -155,6 +160,7 @@ Validates database connectivity (15s timeout), reads stdin lines, deserializes J
 | `McpMessageHandlerTests.cs` | Handler protocol and tool-call coverage |
 | `DatabaseServiceTests.cs` | `DatabaseService` with mocked `ISqlExecutor` |
 | `DatabaseServiceIntegrationTests.cs` | Live SQL Server tests (`[TestCategory("Integration")]`) |
+| `QueryValidatorTests.cs` | `QueryValidator` allow/deny coverage (SELECT-only + table-source allow-list) |
 | `Script/integration-test-db.sql` | Creates `mcp_test` with tables/views/procs/functions/trigger + seed data |
 | `.runsettings.example` | Template — copy to `.runsettings` and set `DbConnectionString` |
 | `.runsettings` | Local integration DB credentials (gitignored) |
@@ -197,6 +203,7 @@ McpServer.Test
     ├── TestDatabaseService : IDatabaseService
     ├── McpMessageHandlerTests → McpMessageHandler
     ├── DatabaseServiceTests → DatabaseService (mock ISqlExecutor)
+    ├── QueryValidatorTests → QueryValidator
     └── DatabaseServiceIntegrationTests → DatabaseService (live SQL)
 ```
 
