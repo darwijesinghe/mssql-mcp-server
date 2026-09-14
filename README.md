@@ -1,6 +1,7 @@
 # mssql-mcp-server
 
 [![GitHub release](https://img.shields.io/github/v/release/darwijesinghe/mssql-mcp-server.svg)](https://github.com/darwijesinghe/mssql-mcp-server/releases)
+[![GitHub downloads](https://img.shields.io/github/downloads/darwijesinghe/mssql-mcp-server/total.svg)](https://github.com/darwijesinghe/mssql-mcp-server/releases)
 [![Build](https://github.com/darwijesinghe/mssql-mcp-server/actions/workflows/build.yml/badge.svg)](https://github.com/darwijesinghe/mssql-mcp-server/actions/workflows/build.yml)
 [![GitHub license](https://img.shields.io/github/license/darwijesinghe/mssql-mcp-server.svg)](https://opensource.org/licenses/MIT)
 [![Maintenance](https://img.shields.io/maintenance/yes/2026.svg)](https://github.com/darwijesinghe/mssql-mcp-server/commits/main)
